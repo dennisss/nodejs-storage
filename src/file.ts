@@ -37,7 +37,9 @@ import * as through from 'through2';
 import * as xdgBasedir from 'xdg-basedir';
 import * as zlib from 'zlib';
 import * as url from 'url';
-import * as r from 'request';
+import * as r from 'request';  // Only for type declarations.
+import {teenyRequest} from 'teeny-request';
+
 
 import {Storage} from '.';
 import {Bucket} from './bucket';
@@ -273,7 +275,7 @@ class File extends ServiceObject {
       parent: bucket,
       baseUrl: '/o',
       id: encodeURIComponent(name),
-      requestModule: r,
+      requestModule: teenyRequest as typeof r,
     });
 
     this.bucket = bucket;
@@ -2630,7 +2632,7 @@ class File extends ServiceObject {
       },
       metadata: options.metadata,
       request: reqOpts,
-      requestModule: r,
+      requestModule: teenyRequest as typeof r,
     });
   }
 }

@@ -28,12 +28,11 @@ const path = require('path');
 const through = require('through2');
 const tmp = require('tmp');
 const uuid = require('uuid');
-
+const PubSub = require('@google-cloud/pubsub');
 const util = require('@google-cloud/common').util;
 
 const {Storage} = require('../');
 const Bucket = Storage.Bucket;
-const PubSub = require('@google-cloud/pubsub');
 
 describe('storage', function() {
   const USER_ACCOUNT = 'user-spsawchuk@gmail.com';
