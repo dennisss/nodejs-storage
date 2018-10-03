@@ -932,7 +932,8 @@ describe('storage', () => {
 
         bucket.create()
             .then(() => bucket.setRetentionPeriod(RETENTION_DURATION_SECONDS))
-            .then(() => bucket.lock())
+            .then(() => bucket.getMetadata())
+            .then(metadata => bucket.lock(metadata.metageneration))
             .then(
                 () => bucket.setRetentionPeriod(RETENTION_DURATION_SECONDS / 2))
             .catch(err => {
@@ -1791,6 +1792,11 @@ describe('storage', () => {
 
       it('should not download from the unencrypted file', done => {
         unencryptedFile.download(err => {
+          if (!err) {
+            done(new Error('Expected an error.'));
+            return;
+          }
+
           assert(err.message.indexOf([
             'The target object is encrypted by a',
             'customer-supplied encryption key.',
@@ -2552,7 +2558,7 @@ describe('storage', () => {
           .on('finish', done.bind(null, null));
     });
 
-    beforeEach(() => {
+    beforeEach(function() {
       if (!storage.projectId) {
         this.skip();
       }

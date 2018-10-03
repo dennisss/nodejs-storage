@@ -133,7 +133,7 @@ export type DownloadResponse = [Buffer];
  * @param err Request error, if any.
  * @param contents The contents of a File.
  */
-export type DownloadCallback = (err: Error|undefined, contents: Buffer) => void;
+export type DownloadCallback = (err: RequestError, contents: Buffer) => void;
 
 export interface DownloadOptions extends CreateReadStreamOptions {
   destination?: string;
@@ -1313,7 +1313,7 @@ class File extends ServiceObject {
    * region_tag:storage_delete_file
    * Another example:
    */
-  delete(options, callback?) {
+  delete(options?, callback?) {
     if (is.fn(options)) {
       callback = options;
       options = {};
@@ -1586,7 +1586,7 @@ class File extends ServiceObject {
    *   // expirationDate is a Date object.
    * });
    */
-  getExpirationDate(callback) {
+  getExpirationDate(callback?) {
     this.getMetadata((err, metadata, apiResponse) => {
       if (err) {
         callback(err, null, apiResponse);
@@ -1646,7 +1646,7 @@ class File extends ServiceObject {
    * region_tag:storage_get_metadata
    * Another example:
    */
-  getMetadata(options, callback?) {
+  getMetadata(options?, callback?) {
     if (is.fn(options)) {
       callback = options;
       options = {};
@@ -2411,7 +2411,7 @@ class File extends ServiceObject {
    * //-
    * file.save(contents).then(function() {});
    */
-  save(data, options, callback?) {
+  save(data, options?, callback?) {
     if (is.fn(options)) {
       callback = options;
       options = {};
@@ -2505,7 +2505,7 @@ class File extends ServiceObject {
    *   const apiResponse = data[0];
    * });
    */
-  setMetadata(metadata, options, callback?) {
+  setMetadata(metadata, options?, callback?) {
     if (is.fn(options)) {
       callback = options;
       options = {};

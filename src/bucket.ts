@@ -1902,7 +1902,7 @@ class Bucket extends ServiceObject {
    *   const apiResponse = data[0];
    * });
    */
-  lock(metageneration, callback) {
+  lock(metageneration, callback?) {
     if (!is.number(metageneration) && !is.string(metageneration)) {
       throw new Error('A metageneration must be provided.');
     }
@@ -2210,7 +2210,7 @@ class Bucket extends ServiceObject {
    *   const apiResponse = data[0];
    * });
    */
-  removeRetentionPeriod(callback) {
+  removeRetentionPeriod(callback?) {
     this.setMetadata(
         {
           retentionPolicy: null,
@@ -2426,7 +2426,7 @@ class Bucket extends ServiceObject {
    *   const apiResponse = data[0];
    * });
    */
-  setRetentionPeriod(duration, callback) {
+  setRetentionPeriod(duration, callback?) {
     this.setMetadata(
         {
           retentionPolicy: {
