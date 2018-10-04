@@ -51,6 +51,7 @@ export interface CreateBucketRequest {
   nearline?: boolean;
   regional?: boolean;
   requesterPays?: boolean;
+  retentionPolicy?: object;
   userProject?: string;
 }
 

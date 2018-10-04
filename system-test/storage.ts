@@ -893,67 +893,79 @@ describe('storage', () => {
     const RETENTION_DURATION_SECONDS = 10;
 
     describe('bucket', () => {
-      it('should create a bucket with a retention policy', () => {
+      it('should create a bucket with a retention policy', done => {
         const bucket = storage.bucket(generateName());
 
-        return bucket
-            .create({
+        async.series([
+          next => {
+            storage.createBucket(bucket.name, {
               retentionPolicy: {
                 retentionPeriod: RETENTION_DURATION_SECONDS,
               },
-            })
-            .then(() => bucket.getMetadata())
-            .then(response => {
-              const metadata = response[0];
+            }, err => {
+              if (err) {
+                next(err);
+                return;
+              }
 
-              assert.strictEqual(
-                  metadata.retentionPolicy.retentionPeriod,
-                  `${RETENTION_DURATION_SECONDS}`);
+              next();
             });
+          },
+          next => bucket.getMetadata(err => next(err)),
+        ], err => {
+          assert.ifError(err);
+          assert.strictEqual(bucket.metadata.retentionPolicy.retentionPeriod, `${RETENTION_DURATION_SECONDS}`);
+          done();
+        });
       });
 
-      it('should set a retention policy', () => {
+      it('should set a retention policy', done => {
         const bucket = storage.bucket(generateName());
 
-        return bucket.create()
-            .then(() => bucket.setRetentionPeriod(RETENTION_DURATION_SECONDS))
-            .then(() => bucket.getMetadata())
-            .then(response => {
-              const metadata = response[0];
-
-              assert.strictEqual(
-                  metadata.retentionPolicy.retentionPeriod,
-                  `${RETENTION_DURATION_SECONDS}`);
-            });
+        async.series([
+          next => bucket.create(next),
+          next => bucket.setRetentionPeriod(RETENTION_DURATION_SECONDS, next),
+          next => bucket.getMetadata(err => next(err)),
+        ], err => {
+          assert.ifError(err);
+          assert.strictEqual(bucket.metadata.retentionPolicy.retentionPeriod, `${RETENTION_DURATION_SECONDS}`);
+          done();
+        });
       });
 
       it('should lock the retention period', done => {
         const bucket = storage.bucket(generateName());
 
-        bucket.create()
-            .then(() => bucket.setRetentionPeriod(RETENTION_DURATION_SECONDS))
-            .then(() => bucket.getMetadata())
-            .then(metadata => bucket.lock(metadata.metageneration))
-            .then(
-                () => bucket.setRetentionPeriod(RETENTION_DURATION_SECONDS / 2))
-            .catch(err => {
-              assert.strictEqual(err.code, 403);
-              done();
-            });
+        async.series([
+          next => bucket.create(next),
+          next => bucket.setRetentionPeriod(RETENTION_DURATION_SECONDS, next),
+          next => bucket.getMetadata(err => next(err)),
+          next => { bucket.lock(bucket.metadata.metageneration, next); },
+          next => bucket.setRetentionPeriod(RETENTION_DURATION_SECONDS / 2, next),
+        ], err => {
+          if (!err) {
+            done(new Error('Expected an error.'));
+            return;
+          }
+
+          assert.strictEqual((err as any).code, 403);
+          done();
+        });
       });
 
-      it('should remove a retention period', () => {
+      it('should remove a retention period', done => {
         const bucket = storage.bucket(generateName());
 
-        return bucket.create()
-            .then(() => bucket.setRetentionPeriod(RETENTION_DURATION_SECONDS))
-            .then(() => bucket.removeRetentionPeriod())
-            .then(() => bucket.getMetadata())
-            .then(response => {
-              const metadata = response[0];
-
-              assert.strictEqual(metadata.retentionPolicy, undefined);
-            });
+        async.series([
+          next => bucket.create(next),
+          next => bucket.setRetentionPeriod(RETENTION_DURATION_SECONDS, next),
+          next => bucket.removeRetentionPeriod(next),
+          next => bucket.getMetadata(err => next(err)),
+        ], err => {
+          assert.ifError(err);
+          assert.strictEqual(bucket.metadata.retentionPolicy, undefined);
+          done();
+        });
       });
     });
 
@@ -961,14 +973,19 @@ describe('storage', () => {
       const BUCKET = storage.bucket(generateName());
       const FILE = BUCKET.file(generateName());
 
-      before(() => {
-        return BUCKET
-            .create({
-              retentionPolicy: {
-                retentionPeriod: 1,
-              },
-            })
-            .then(() => FILE.save('data'));
+      before(done => {
+        BUCKET.create({
+          retentionPolicy: {
+            retentionPeriod: 1,
+          },
+        }, err => {
+          if (err) {
+            done(err);
+            return;
+          }
+
+          FILE.save('data', done);
+        });
       });
 
       afterEach(() => {
@@ -979,42 +996,41 @@ describe('storage', () => {
         return FILE.delete();
       });
 
-      it('should set and release an event-based hold', () => {
-        return FILE.setMetadata({eventBasedHold: true})
-            .then(response => {
-              const metadata = response[0];
-
-              assert.strictEqual(metadata.eventBasedHold, true);
-            })
-            .then(() => FILE.setMetadata({eventBasedHold: false}))
-            .then(() => FILE.getMetadata())
-            .then(response => {
-              const metadata = response[0];
-
-              assert.strictEqual(metadata.eventBasedHold, false);
-            });
+      it('should set and release an event-based hold', done => {
+        async.series([
+          next => FILE.setMetadata({eventBasedHold: true}, next),
+          next => {
+            assert.strictEqual(FILE.metadata.eventBasedHold, true);
+            next();
+          },
+          next => FILE.setMetadata({eventBasedHold: false}),
+          next => {
+            assert.strictEqual(FILE.metadata.eventBasedHold, false);
+            next();
+          }
+        ], done);
       });
 
-      it('should set and release a temporary hold', () => {
-        return FILE.setMetadata({temporaryHold: true})
-            .then(response => {
-              const metadata = response[0];
-
-              assert.strictEqual(metadata.temporaryHold, true);
-            })
-            .then(() => FILE.setMetadata({temporaryHold: false}))
-            .then(() => FILE.getMetadata())
-            .then(response => {
-              const metadata = response[0];
-
-              assert.strictEqual(metadata.temporaryHold, false);
-            });
+      it('should set and release a temporary hold', done => {
+        async.series([
+          next => FILE.setMetadata({temporaryHold: true}, next),
+          next => {
+            assert.strictEqual(FILE.metadata.temporaryHold, true);
+            next();
+          },
+          next => FILE.setMetadata({temporaryHold: false}),
+          next => {
+            assert.strictEqual(FILE.metadata.temporaryHold, false);
+            next();
+          }
+        ], done);
       });
 
-      it('should get an expiration date', () => {
-        return FILE.getExpirationDate().then(response => {
-          const expirationDate = response[0];
+      it('should get an expiration date', done => {
+        FILE.getExpirationDate((err, expirationDate) => {
+          assert.ifError(err);
           assert(expirationDate instanceof Date);
+          done();
         });
       });
     });
@@ -1052,12 +1068,12 @@ describe('storage', () => {
         }, callback);
       }
 
-      before(() => {
-        return BUCKET.create({
+      before(done => {
+        BUCKET.create({
           retentionPolicy: {
             retentionPeriod: RETENTION_PERIOD_SECONDS,
           },
-        });
+        }, done);
       });
 
       after(done => {
