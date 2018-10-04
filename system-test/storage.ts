@@ -1555,7 +1555,7 @@ describe('storage', () => {
 
       writeStream.on('error', done);
       writeStream.on('finish', () => {
-        let data = Buffer.from('');
+        let data = Buffer.from('', 'utf8');
 
         file.createReadStream()
             .on('error', done)
