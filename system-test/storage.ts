@@ -1027,7 +1027,7 @@ describe('storage', () => {
                 assert.strictEqual(FILE.metadata.eventBasedHold, true);
                 next();
               },
-              next => FILE.setMetadata({eventBasedHold: false}),
+              next => FILE.setMetadata({eventBasedHold: false}, next),
               next => {
                 assert.strictEqual(FILE.metadata.eventBasedHold, false);
                 next();
@@ -1044,7 +1044,7 @@ describe('storage', () => {
                 assert.strictEqual(FILE.metadata.temporaryHold, true);
                 next();
               },
-              next => FILE.setMetadata({temporaryHold: false}),
+              next => FILE.setMetadata({temporaryHold: false}, next),
               next => {
                 assert.strictEqual(FILE.metadata.temporaryHold, false);
                 next();
