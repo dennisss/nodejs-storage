@@ -110,6 +110,7 @@ describe('storage', () => {
         GOOGLE_APPLICATION_CREDENTIALS =
             process.env.GOOGLE_APPLICATION_CREDENTIALS;
         delete process.env.GOOGLE_APPLICATION_CREDENTIALS;
+        delete require.cache[require.resolve('../src')];
 
         const {Storage} = require('../src');
         storageWithoutAuth = new Storage();
