@@ -29,7 +29,7 @@ import * as through from 'through2';
 import * as tmp from 'tmp';
 import * as uuid from 'uuid';
 import {util, ApiError, InstanceResponseCallback, BodyResponseCallback} from '@google-cloud/common';
-import {Storage, Bucket} from '../src';
+import {Storage, Bucket, File} from '../src';
 import {DeleteBucketCallback} from '../src/bucket';
 
 // tslint:disable-next-line:variable-name
@@ -1021,7 +1021,7 @@ describe('storage', () => {
 
     describe('operations on held objects', () => {
       const BUCKET = storage.bucket(generateName());
-      const FILES = [];
+      const FILES: File[] = [];
 
       const RETENTION_PERIOD_SECONDS = 5;  // Each test has this much time!
 
