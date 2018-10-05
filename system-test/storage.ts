@@ -1136,6 +1136,7 @@ describe('storage', () => {
 
         it('file#createResumableUpload', doubleTest((options, done) => {
              file.createResumableUpload(options, (err, uri) => {
+               console.log(err.message);
                assert.ifError(err);
 
                file.createWriteStream({uri})
