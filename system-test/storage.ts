@@ -1838,6 +1838,11 @@ describe('storage', () => {
 
       it('should not download from the unencrypted file', done => {
         unencryptedFile.download(err => {
+          if (!err) {
+            done(new Error('Expected an error.'));
+            return;
+          }
+
           assert(err!.message.indexOf([
             'The target object is encrypted by a',
             'customer-supplied encryption key.',
