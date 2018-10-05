@@ -1138,6 +1138,7 @@ describe('storage', () => {
              file.createResumableUpload(options, (err, uri) => {
                if (err) {
                  done(err);
+                 return;
                }
 
                file.createWriteStream({uri})
