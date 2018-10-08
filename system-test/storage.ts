@@ -1251,7 +1251,7 @@ describe('storage', () => {
                 // for the key file.
                 let key2 = process.env.GCN_STORAGE_2ND_PROJECT_KEY;
                 if (key2 && key2.charAt(0) === '.') {
-                  key2 = `${__dirname}/../${key2}`;
+                  key2 = `${__dirname}/../../${key2}`;
                 }
 
                 // Get the service account for the "second" account (the
@@ -1381,7 +1381,10 @@ describe('storage', () => {
 
         it('file#createResumableUpload', doubleTest((options, done) => {
              file.createResumableUpload(options, (err, uri) => {
-               assert.ifError(err);
+               if (err) {
+                 done(err);
+                 return;
+               }
 
                file.createWriteStream({uri})
                    .on('error', done)
